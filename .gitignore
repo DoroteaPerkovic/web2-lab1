@@ -1,0 +1,22 @@
+# Ovisnosti
+node_modules/
+
+# Osjetljivi podaci
+.env
+.env.*
+!.env.example
+
+# Logovi
+logs/
+*.log
+npm-debug.log*
+
+# OS i editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Ostalo
+coverage/
+dist/
