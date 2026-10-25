@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
-  },
+  "build": "npm run clean && tsc && npm run copy-views",
+  "clean": "shx rm -rf dist",
+  "copy-views": "shx cp -r src/views/ dist",
+  "start": "node dist/main.js"
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DoroteaPerkovic/web2-lab1.git"
