@@ -1,0 +1,30 @@
+{
+  "name": "web2-lab1",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DoroteaPerkovic/web2-lab1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DoroteaPerkovic/web2-lab1/issues"
+  },
+  "homepage": "https://github.com/DoroteaPerkovic/web2-lab1#readme",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^18.0.9",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "express-oauth2-jwt-bearer": "^1.11.0",
+    "express-openid-connect": "^3.4.0",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4"
+  }
+}
