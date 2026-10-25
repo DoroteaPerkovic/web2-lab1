@@ -1,13 +1,16 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
+import QRCode from 'qrcode';
 import { auth, requiresAuth } from 'express-openid-connect';
-import { initDb, getStats, listPasses, getPass, cancelPass, deletePass } from './db';
+import { auth as jwtAuth, requiredScopes } from 'express-oauth2-jwt-bearer';
+import { initDb, getStats, listPasses, getPass, cancelPass, deletePass, createPass } from './db';
 
 const app = express();                          //express server
 app.set('trust proxy', true);                   //koristenje rederovog proxy-a
 app.set('view engine', 'pug');                  //koristenje pug-a
 app.set('views', path.join(__dirname, 'views'));
+app.use(express.json());
 
 const externalUrl = process.env.RENDER_EXTERNAL_URL;                                //koristenje porta kojeg render zada
 const port = externalUrl && process.env.PORT ? parseInt(process.env.PORT) : 3000;
@@ -23,10 +26,16 @@ app.use(
     clientID: process.env.CLIENT_ID,                //podaci iz .env
     clientSecret: process.env.CLIENT_SECRET,
     issuerBaseURL: process.env.ISSUER_BASE_URL,
-    secret: process.env.SECRET,
+    secret: process.env.SESSION_SECRET,
     authorizationParams: { response_type: 'code' },
   })
 );
+
+//funkcija za provjeru tokena
+const jwtCheck = jwtAuth({
+  issuerBaseURL: process.env.ISSUER_BASE_URL,
+  audience: process.env.AUDIENCE,
+});
 
 //pocetna stranica
 app.get('/', async (req, res, next) => {
@@ -81,3 +90,54 @@ initDb()
     console.error('Greška pri pokretanju baze:', e);
     process.exit(1);
   });
+
+//dohvat propusnice (M2M) = read:passes
+app.get('/passes/:id', jwtCheck, requiredScopes('read:passes'), async (req, res, next) => {
+  try {
+    const pass = await getPass(String(req.params.id));
+    if (!pass) {
+      res.status(404).json({ error: 'Propusnica ne postoji' });     //greska 404 ako propusnica ne postoji
+      return;
+    }
+    //podaci propusnice
+    res.json({
+      id: pass.id,
+      name: pass.name,
+      document: pass.document,
+      issuedAt: new Date(pass.issued_at).toISOString(),
+      status: pass.status,
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+//funkcija za izdavanje propusnice (M2M) = create:passes
+app.post('/passes', jwtCheck, requiredScopes('create:passes'), async (req, res, next) => {
+  try {
+    const { name, document: doc } = req.body ?? {};
+    if (typeof name !== 'string' || typeof doc !== 'string' || !name.trim() || !doc.trim()) {
+      res.status(400).json({ error: 'name i document su obavezni' });
+      return;
+    }
+    const pass = await createPass(name.trim(), doc.trim());
+    //QR kod sadrži adresu JAVNE info stranice
+    const png = await QRCode.toBuffer(`${baseURL}/info/${pass.id}`, { type: 'png' });
+    //location pokazuje na prvu pristupnu tocku (GET /passes/:id)
+    res.status(201).set('Location', `${baseURL}/passes/${pass.id}`).type('image/png').send(png);
+  } catch (e) {
+    next(e);
+  }
+});
+
+//obrada gresaka
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  const status = err.status || 500;
+  if (status >= 500) console.error(err);
+  if (err.headers) res.set(err.headers);
+  res.status(status).json({ error: status >= 500 ? 'Greška na serveru' : err.message });
+});
+
+  //pokretanje:
+  //npm run build
+  //npm star

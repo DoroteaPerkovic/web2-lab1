@@ -1,5 +1,6 @@
 import {Pool} from 'pg';        //omogucuje komunikaciju node-a i pg-a
 import dotenv from 'dotenv';
+import {randomUUID} from 'crypto';  //koristim za ID
 
 dotenv.config();                //ucitava env i varijable iz nje stavlja u process.env
 
@@ -9,7 +10,7 @@ export const pool = new Pool({
 });
 
 export async function initDb(): Promise<void> {     //funkcija radi novu tablicu ako ona vec ne postoji
-                                                    //tablica sadrzi id, name, vrijeme stvaranja i status
+                                                    //tablica sadrzi id, name, vrijeme stvaranja (NOW) i status (ACTIVE)
   await pool.query(`
     CREATE TABLE IF NOT EXISTS passes (             
       id UUID PRIMARY KEY,
@@ -72,4 +73,15 @@ export async function cancelPass(id: string): Promise<void> {
 export async function deletePass(id: string): Promise<void> {
   if (!isUuid(id)) return;
   await pool.query('DELETE FROM passes WHERE id = $1', [id]);
+}
+//funkcija za stvaranje propusnica, issued_at i status su postavljeni po defaultu
+export async function createPass(name: string, document: string): Promise<Pass> {
+  const id = randomUUID();
+  const r = await pool.query(
+    `INSERT INTO passes (id, name, document)
+     VALUES ($1, $2, $3)
+     RETURNING id, name, document, issued_at, status`,
+    [id, name, document]
+  );
+  return r.rows[0];
 }
