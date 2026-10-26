@@ -1,0 +1,20 @@
+doctype html
+html(lang="hr")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    title Propusnica
+    style.
+      body { font-family: Arial, sans-serif; max-width: 500px; margin: 2rem auto; padding: 0 1rem; }
+      .status { font-weight: bold; font-size: 1.4rem; }
+      .ACTIVE { color: #1a7f37; }
+      .CANCELLED { color: #c62828; }
+  body
+    if !pass
+      h1 Propusnica ne postoji
+    else
+      h1 Propusnica
+      p.status(class=pass.status)= pass.status
+      p #[strong Ime i prezime:] #{pass.name}
+      p #[strong Dokument:] #{pass.document}
+      p #[strong Izdano:] #{new Date(pass.issued_at).toISOString()}

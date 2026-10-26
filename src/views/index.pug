@@ -1,0 +1,47 @@
+doctype html
+html(lang="hr")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    title Digitalne propusnice
+    style.
+      body { font-family: Arial, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+      table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+      th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
+      th { background: #f0f0f0; }
+      form { display: inline; }
+  body
+    h1 Digitalne propusnice
+    p Ukupno propusnica: #[strong= stats.total]
+    p Aktivnih propusnica: #[strong= stats.active]
+
+    if !loggedIn
+      p
+        a(href="/login") Prijava
+    else
+      p Prijavljeni ste kao #[strong= user.email || user.name] | #[a(href="/logout") Odjava]
+
+      h2 Propusnice
+      if passes.length === 0
+        p Nema propusnica.
+      else
+        table
+          tr
+            th Ime i prezime
+            th Dokument
+            th Izdano
+            th Status
+            th Akcije
+          each pass in passes
+            tr
+              td= pass.name
+              td= pass.document
+              td= new Date(pass.issued_at).toLocaleString('hr-HR')
+              td= pass.status
+              td
+                a(href=`/info/${pass.id}`) Info
+                if pass.status === 'ACTIVE'
+                  form(method="POST", action=`/admin/passes/${pass.id}/cancel`)
+                    button(type="submit") Poništi
+                form(method="POST", action=`/admin/passes/${pass.id}/delete`, onsubmit="return confirm('Obrisati propusnicu?')")
+                  button(type="submit") Obriši
