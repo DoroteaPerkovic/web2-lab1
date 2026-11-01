@@ -10,6 +10,7 @@ const app = express();                          //express server
 app.set('trust proxy', true);                   //koristenje rederovog proxy-a
 app.set('view engine', 'pug');                  //koristenje pug-a
 app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 const externalUrl = process.env.RENDER_EXTERNAL_URL;                                //koristenje porta kojeg render zada

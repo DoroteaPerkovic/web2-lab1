@@ -1,5 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 
+//dohvacanje tokena
 export async function getToken(
   authority: string,
   audience: string,
@@ -30,6 +31,7 @@ export async function getToken(
   return data.access_token;
 }
 
+//izdavanje propusnica
 export async function issuePass(
   url: string,
   token: string,
@@ -49,6 +51,7 @@ export async function issuePass(
     throw new Error(`Izdavanje propusnice nije uspjelo: status ${res.status} ${res.statusText}`);
   }
 
+  //citanje identifikatora iz Location
   const location = res.headers.get('Location');
   if (!location) {
     throw new Error('Odgovor ne sadrži zaglavlje Location');
@@ -60,6 +63,7 @@ export async function issuePass(
     throw new Error(`Neispravan identifikator u zaglavlju Location: ${location}`);
   }
 
+  //spremanje qr-koda u trenutni direktorij
   const png = Buffer.from(await res.arrayBuffer());
   await writeFile(`${id}.png`, png);
 }
